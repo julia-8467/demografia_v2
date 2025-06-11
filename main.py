@@ -1,64 +1,19 @@
-from fastapi import FastAPI, Depends, HTTPException, APIRouter, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, distinct
 import os
 
-from Demografia.models import Demografia, Zgony
+from Demografia.models import Demografia, Zgony  # Upewnij się, że importujesz właściwe modele
 from Demografia.Database import get_db
-from Demografia import crud
+from Demografia import crud  # zakładam, że masz tam logikę do urodzeń
 
 app = FastAPI()
-router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="templates")  # Upewnij się, że folder "templates" jest obok tego pliku
 
-app = FastAPI()
 
-@app.get("/")
-def read_root():
-    return {"message": "Witaj w API Demografia_v2!"}
-
-# @app.post("/import-csv")
-# def import_csv(db: Session = Depends(get_db)):
-#     import_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Ludność_woj/pl_lud_2017_v2.csv")
-#     return {"status": "Dane zaimportowane pomyślnie"}
-
-# @router.post("/import-zgony")
-# def import_zgony_csv(db: Session = Depends(get_db)):
-#     import_zgony_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Zgony/Zgony_2010.csv")
-#     import_zgony_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Zgony/Zgony_2002.csv")
-#     return {"status": "Dane zaimportowane pomyślnie"}
-
-# @router.post("/import-urodzenia")
-# def import_urodzenia_csv(db: Session = Depends(get_db)):
-#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2023_00_49.csv")
-#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2017_00_49.csv")
-#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2010_00_49.csv")
-#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2002_00_49.csv")
-#     return {"status": "Dane zaimportowane pomyślnie"}
-
-# @router.get("/mapa")
-# def get_map():
-#     output_path = "D:/Users/julli/Studia/VIsemestr/Chmury/static/mapa.bmp"
-#     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-#     generuj_mape(output_path)
-#     return FileResponse(output_path, media_type="image/bmp")
-
-# @router.delete("/usun-wszystkie", tags=["Admin"])
-# def usun_wszystkie_dane(db: Session = Depends(get_db)):
-#     try:
-#         liczba_usunietych = db.query(Zgony).delete()
-#         db.commit()
-#         return {"status": "sukces", "usuniete_rekordy": liczba_usunietych}
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(status_code=500, detail=f"Błąd usuwania danych: {str(e)}")
-
-from sqlalchemy import distinct
-from Demografia.models import Demografia  # lub inny model, który zawiera województwa
-
-@app.get('/index/', response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     wojewodztwa = (
         db.query(distinct(Demografia.wojewodztwa))
@@ -74,7 +29,7 @@ def index(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("index.html", context)
 
 
-@router.get("/demografia/", response_class=HTMLResponse)
+@app.get("/demografia/", response_class=HTMLResponse)
 def get_demografia(
     request: Request,
     wojewodztwo: str,
@@ -96,8 +51,14 @@ def get_demografia(
 
     return templates.TemplateResponse("demografia_fragment.html", context)
 
-@router.get("/zgony/", response_class=HTMLResponse)
-def zgony(request: Request, rok: int = 2020, wiek: str = "0_4", db: Session = Depends(get_db)):
+
+@app.get("/zgony/", response_class=HTMLResponse)
+def zgony(
+    request: Request,
+    rok: int,
+    wiek: str,
+    db: Session = Depends(get_db)
+):
     kolumna_wiekowa = f"p{wiek}"
 
     dozwolone_kolumny = {
@@ -112,10 +73,7 @@ def zgony(request: Request, rok: int = 2020, wiek: str = "0_4", db: Session = De
     kolumna = getattr(Zgony, kolumna_wiekowa)
 
     results = (
-        db.query(
-            Zgony.wojewodztwa,
-            func.sum(kolumna).label("suma_zgonow")
-        )
+        db.query(Zgony.wojewodztwa, func.sum(kolumna).label("suma_zgonow"))
         .filter(Zgony.rok == rok)
         .group_by(Zgony.wojewodztwa)
         .all()
@@ -123,10 +81,7 @@ def zgony(request: Request, rok: int = 2020, wiek: str = "0_4", db: Session = De
 
     zgony_wojewodztwa = [{"wojewodztwo": r[0], "suma_zgonow": r[1]} for r in results]
 
-    if wiek == "85":
-        wiek_display = "85+"
-    else:
-        wiek_display = wiek.replace("_", "-")
+    wiek_display = "85+" if wiek == "85" else wiek.replace("_", "-")
 
     context = {
         "request": request,
@@ -137,7 +92,8 @@ def zgony(request: Request, rok: int = 2020, wiek: str = "0_4", db: Session = De
 
     return templates.TemplateResponse("zgony_fragment.html", context)
 
-@router.get("/urodzenia", response_class=HTMLResponse)
+
+@app.get("/urodzenia", response_class=HTMLResponse)
 def get_urodzenia(
     request: Request,
     wojewodztwo: str,
@@ -145,10 +101,12 @@ def get_urodzenia(
     db: Session = Depends(get_db)
 ):
     urodzenia = crud.get_urodzenia_by_wojewodztwo_i_rok(db, wojewodztwo, rok)
-    return templates.TemplateResponse(
-        "urodzenia_table.html",
-        {"request": request, "urodzenia": urodzenia}
-    )
 
+    context = {
+        "request": request,
+        "urodzenia": urodzenia,
+        "wojewodztwo": wojewodztwo,
+        "rok": rok
+    }
 
-app.include_router(router)
+    return templates.TemplateResponse("urodzenia_table.html", context)
