@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demografia Polski</title>
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<header class="bg-red-500 p-6 text-white text-3xl font-bold shadow-md">
+    Demografia Polski
+</header>
+
+<main class="p-8 space-y-12 max-w-6xl mx-auto">
+
+    <!-- Liczba ludności -->
+    <section>
+        <h2 class="text-xl font-semibold mb-4">Liczba ludności według województwa i roku</h2>
+
+        <form
+            hx-get="/demografia/"
+            hx-target="#demografiaContainer"
+            hx-swap="innerHTML"
+            class="flex flex-col sm:flex-row flex-wrap gap-4 items-start"
+        >
+            <label>
+                Województwo:
+                <select name="wojewodztwo" class="border rounded px-2 py-1">
+                    {% for row in wojewodztwa %}
+                    <option value="{{ row.wojewodztwo }}">{{ row.wojewodztwo }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Rok:
+                <select name="rok" class="border rounded px-2 py-1">
+                    {% for r in [2002, 2010, 2017, 2024] %}
+                    <option value="{{ r }}">{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <button
+                type="submit"
+                onclick="return toggleSection('demografiaContainer', event)"
+                class="text-white px-4 py-2 rounded shadow transition bg-indigo-500 hover:bg-indigo-600"
+            >
+                Pokaż dane
+            </button>
+        </form>
+
+        <div id="demografiaContainer" class="mt-6 hidden"></div>
+    </section>
+
+    <!-- Zgony -->
+    <section>
+        <h2 class="text-xl font-semibold mb-4">Zgony według województw</h2>
+
+        <form
+            hx-get="/zgony/"
+            hx-target="#zgonyContainer"
+            hx-swap="innerHTML"
+            class="flex flex-col sm:flex-row flex-wrap items-start gap-4"
+        >
+            <label>
+                Rok:
+                <select name="rok" class="border rounded px-2 py-1">
+                    {% for r in [2002, 2010, 2017, 2024] %}
+                    <option value="{{ r }}">{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Wiek:
+                <select name="wiek" class="border rounded px-2 py-1">
+                    <option value="0_4">0-4</option>
+                    <option value="5_9">5-9</option>
+                    <option value="10_14">10-14</option>
+                    <option value="15_19">15-19</option>
+                    <option value="20_24">20-24</option>
+                    <option value="25_29">25-29</option>
+                    <option value="30_34">30-34</option>
+                    <option value="35_39">35-39</option>
+                    <option value="40_44">40-44</option>
+                    <option value="45_49">45-49</option>
+                    <option value="50_54">50-54</option>
+                    <option value="55_59">55-59</option>
+                    <option value="60_64">60-64</option>
+                    <option value="65_69">65-69</option>
+                    <option value="70_74">70-74</option>
+                    <option value="75_79">75-79</option>
+                    <option value="80_84">80-84</option>
+                    <option value="85">85+</option>
+                </select>
+            </label>
+
+            <button
+                type="submit"
+                onclick="return toggleSection('zgonyContainer', event)"
+                class="text-white px-4 py-2 rounded shadow transition bg-green-500 hover:bg-green-600"
+            >
+                Pokaż zgony
+            </button>
+        </form>
+
+        <div id="zgonyContainer" class="mt-6 hidden"></div>
+    </section>
+
+    <!-- Urodzenia -->
+    <section>
+        <h2 class="text-xl font-semibold mb-4">Urodzenia według województw i roku</h2>
+
+        <form
+            hx-get="/urodzenia"
+            hx-target="#urodzeniaContainer"
+            hx-swap="innerHTML"
+            class="flex flex-col sm:flex-row flex-wrap items-start gap-4"
+        >
+            <label>
+                Województwo:
+                <select name="wojewodztwo" class="border rounded px-2 py-1">
+                    {% for row in wojewodztwa %}
+                    <option value="{{ row.wojewodztwo }}">{{ row.wojewodztwo }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Rok:
+                <select name="rok" class="border rounded px-2 py-1">
+                    {% for r in [2002, 2010, 2017, 2023] %}
+                    <option value="{{ r }}">{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <button
+                type="submit"
+                onclick="return toggleSection('urodzeniaContainer', event)"
+                class="text-white px-4 py-2 rounded shadow transition bg-purple-500 hover:bg-purple-600"
+            >
+                Pokaż urodzenia
+            </button>
+        </form>
+
+        <div id="urodzeniaContainer" class="mt-6 hidden"></div>
+    </section>
+
+</main>
+
+<!-- Skrypty -->
+<script>
+    function toggleSection(id, event) {
+        const div = document.getElementById(id);
+        const isVisible = !div.classList.contains("hidden");
+
+        if (isVisible) {
+            div.classList.add("hidden");
+            event.preventDefault(); // blokuje HTMX
+            return false;
+        }
+
+        return true; // pozwala HTMX wykonać zapytanie
+    }
+
+    document.body.addEventListener('htmx:afterSwap', (e) => {
+        const id = e.detail.target.id;
+        if (["demografiaContainer", "zgonyContainer", "urodzeniaContainer"].includes(id)) {
+            document.getElementById(id).classList.remove("hidden");
+        }
+    });
+</script>
+
+</body>
+</html>

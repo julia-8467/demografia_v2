@@ -1,0 +1,23 @@
+{% if zgony_wojewodztwa %}
+<div class="overflow-x-auto mt-6">
+    <h2 class="text-xl font-semibold">Zgony według województw – Rok {{ rok }}, Wiek {{ wiek }}</h2>
+    <table class="min-w-full bg-white rounded shadow mt-2">
+        <thead>
+            <tr class="bg-gray-200 text-left">
+                <th class="py-2 px-4">Województwo</th>
+                <th class="py-2 px-4">Liczba zgonów</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in zgony_wojewodztwa %}
+            <tr class="border-b hover:bg-gray-100">
+                <td class="py-2 px-4">{{ row.wojewodztwo }}</td>
+                <td class="py-2 px-4">{{ "{:,}".format(row.suma_zgonow).replace(",", " ") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>Brak danych dla wybranego roku i przedziału wiekowego.</p>
+{% endif %}

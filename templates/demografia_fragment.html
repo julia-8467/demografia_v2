@@ -1,0 +1,12 @@
+{% if dane %}
+<div class="bg-white rounded shadow p-6">
+    <h3 class="text-lg font-semibold mb-2">Dane dla: {{ wojewodztwa }} ({{ rok }})</h3>
+    <ul class="space-y-1">
+        <li><strong>Liczba ludności:</strong> {{ "{:,}".format(dane.liczba_ludnosci).replace(",", " ") }}</li>
+        <li><strong>Mężczyźni:</strong> {{ "{:,}".format(dane.mezczyzni).replace(",", " ") }}</li>
+        <li><strong>Kobiety:</strong> {{ "{:,}".format(dane.kobiety).replace(",", " ") }}</li>
+    </ul>
+</div>
+{% else %}
+<p class="text-red-500 mt-4">Brak danych dla wybranego województwa i roku.</p>
+{% endif %}
