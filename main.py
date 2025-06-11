@@ -17,41 +17,41 @@ app = FastAPI()
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-@app.post("/import-csv")
-def import_csv(db: Session = Depends(get_db)):
-    import_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Ludność_woj/pl_lud_2017_v2.csv")
-    return {"status": "Dane zaimportowane pomyślnie"}
+# @app.post("/import-csv")
+# def import_csv(db: Session = Depends(get_db)):
+#     import_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Ludność_woj/pl_lud_2017_v2.csv")
+#     return {"status": "Dane zaimportowane pomyślnie"}
 
-@router.post("/import-zgony")
-def import_zgony_csv(db: Session = Depends(get_db)):
-    import_zgony_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Zgony/Zgony_2010.csv")
-    import_zgony_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Zgony/Zgony_2002.csv")
-    return {"status": "Dane zaimportowane pomyślnie"}
+# @router.post("/import-zgony")
+# def import_zgony_csv(db: Session = Depends(get_db)):
+#     import_zgony_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Zgony/Zgony_2010.csv")
+#     import_zgony_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Zgony/Zgony_2002.csv")
+#     return {"status": "Dane zaimportowane pomyślnie"}
 
-@router.post("/import-urodzenia")
-def import_urodzenia_csv(db: Session = Depends(get_db)):
-    import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2023_00_49.csv")
-    import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2017_00_49.csv")
-    import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2010_00_49.csv")
-    import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2002_00_49.csv")
-    return {"status": "Dane zaimportowane pomyślnie"}
+# @router.post("/import-urodzenia")
+# def import_urodzenia_csv(db: Session = Depends(get_db)):
+#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2023_00_49.csv")
+#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2017_00_49.csv")
+#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2010_00_49.csv")
+#     import_urodzenia_csv_to_db(db, "D:/Users/julli/Studia/VIsemestr/Chmury/Dane/Urodzenia/pl_uro_2002_00_49.csv")
+#     return {"status": "Dane zaimportowane pomyślnie"}
 
-@router.get("/mapa")
-def get_map():
-    output_path = "D:/Users/julli/Studia/VIsemestr/Chmury/static/mapa.bmp"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    generuj_mape(output_path)
-    return FileResponse(output_path, media_type="image/bmp")
+# @router.get("/mapa")
+# def get_map():
+#     output_path = "D:/Users/julli/Studia/VIsemestr/Chmury/static/mapa.bmp"
+#     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+#     generuj_mape(output_path)
+#     return FileResponse(output_path, media_type="image/bmp")
 
-@router.delete("/usun-wszystkie", tags=["Admin"])
-def usun_wszystkie_dane(db: Session = Depends(get_db)):
-    try:
-        liczba_usunietych = db.query(Zgony).delete()
-        db.commit()
-        return {"status": "sukces", "usuniete_rekordy": liczba_usunietych}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Błąd usuwania danych: {str(e)}")
+# @router.delete("/usun-wszystkie", tags=["Admin"])
+# def usun_wszystkie_dane(db: Session = Depends(get_db)):
+#     try:
+#         liczba_usunietych = db.query(Zgony).delete()
+#         db.commit()
+#         return {"status": "sukces", "usuniete_rekordy": liczba_usunietych}
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=f"Błąd usuwania danych: {str(e)}")
 
 from sqlalchemy import distinct
 from Demografia.models import Demografia  # lub inny model, który zawiera województwa
